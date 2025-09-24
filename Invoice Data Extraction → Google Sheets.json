@@ -1,0 +1,183 @@
+{
+  "name": "Invoice Data Extraction → Google Sheets",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.ocr.space/parse/image",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "helloworld"
+            },
+            {
+              "name": "url",
+              "value": "https://www.aeee.in/wp-content/uploads/2020/08/Sample-pdf.pdf"
+            },
+            {
+              "name": "filetype",
+              "value": "pdf"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        32,
+        0
+      ],
+      "id": "5782ed58-5e83-4254-9bbd-16f278539714",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        0
+      ],
+      "id": "e7f8f37e-3c39-47d0-b5fa-af06d07cca5b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $json[\"ParsedResults\"][0][\"ParsedText\"];\n\nreturn [{\n  invoice_date: text.match(/\\d{2}\\/\\d{2}\\/\\d{4}/)?.[0] || \"N/A\",\n  vendor: text.match(/Vendor:\\s*(.*)/)?.[1] || \"Unknown Vendor\",\n  amount: text.match(/(?:Total|Amount)[: ]*\\$?([\\d,\\.]+)/i)?.[1] || \"0\"\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        0
+      ],
+      "id": "1a84a659-eabf-4ca8-b823-f64d90a21ef7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1hDhO5QClAUkKfUgwWFFJoCto3fyP1uuNtVHtaWPiJZM",
+          "mode": "list",
+          "cachedResultName": "Invoice",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hDhO5QClAUkKfUgwWFFJoCto3fyP1uuNtVHtaWPiJZM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hDhO5QClAUkKfUgwWFFJoCto3fyP1uuNtVHtaWPiJZM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "invoice_date": "{{$json[\"invoice_date\"]}}",
+            "vendor": "{{$json[\"vendor\"]}}",
+            "amount": "{{$json[\"amount\"]}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "invoice_date",
+              "displayName": "invoice_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "vendor",
+              "displayName": "vendor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        512,
+        0
+      ],
+      "id": "a61d3246-7925-4828-be4d-96cd68edb566",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ltfIupiX2rLIoRwJ",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "42a849bc-3616-4613-87d3-51c4a63a4c84",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d3482644485742af6b0a35ffb6802f33be3882557fbd660be8f8d9c3af5b6376"
+  },
+  "id": "ica3h2N1UwmVXlKn",
+  "tags": []
+}
